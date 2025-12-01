@@ -105,6 +105,7 @@ authRouter.get(
 
       loginUserSession(req, user);
 
+      // redirect to the desired frontend url
       return void res.redirect("http://localhost:5173/");
     } catch (err) {
       console.error("GitHub callback error:", err);
