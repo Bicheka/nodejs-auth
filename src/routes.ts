@@ -10,6 +10,7 @@ import {
   updateUserAuthProvider,
   findUserByProvider,
   loginUserSession,
+  createUserWithProvider,
 } from "./service";
 import bcrypt from "bcrypt";
 
@@ -87,22 +88,26 @@ authRouter.get(
       // find user that might have created account with email and password and has same email as github account
       if (!user && email) {
         user = await findUserByEmail(email.toLowerCase());
-      }
 
-      // if no user was found at all create a new one
-      if (!user) {
-        user = await createUser({
-          email: email ? email.toLowerCase() : undefined,
-          name,
-          email_verified: true,
-          password: undefined,
-        });
-      }
+        if(user) {
+          // update the providers table creating a new row that link to this i
+          await updateUserAuthProvider(user.id, "github", githubId);
 
-      if (user) {
-        await updateUserAuthProvider(user.id, "github", githubId);
+        } else {
+          // if no user was found
+          // create user and update provider
+          const newUser = {
+            email: email ? email.toLowerCase() : undefined,
+            name,
+            email_verified: true,
+            password: undefined,
+          };
+          user = await createUserWithProvider(newUser, "github", githubId);
+        }
       }
-
+      if(!user) {
+        throw new Error("User could not be resolved")
+      }
       loginUserSession(req, user);
 
       // redirect to the desired frontend url
