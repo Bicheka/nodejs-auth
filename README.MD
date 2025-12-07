@@ -24,8 +24,10 @@ If you want to help shape this project, feel free to open issues, suggest change
 
 ## Set up
 
-To make it work, you are going to need to run [Postgres](https://www.postgresql.org/) and [Redis](https://redis.io/).
+- To make it work, you are going to need to run [Postgres](https://www.postgresql.org/) and [Redis](https://redis.io/).
 You also need to add an .env file to the project root, as shown in the .env.example
+- There is no automatic way to create tables for now, so manually run the queries added in the db/migrations folder to setup the tables needed for the project to run.
+- This project uses --enf-file=.env instead of dotenv for wich you need node version **20.6.0** or higher (Recommended **24.11.1**)
 
 run:
 ```bash
