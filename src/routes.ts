@@ -32,10 +32,14 @@ authRouter.get("/me", requireAuth, (req: Request, res: Response) => {
 });
 
 // Github
-authRouter.get("/github", (_: Request, res: Response) => {
+authRouter.get("/github", (req: Request, res: Response) => {
+  // generate a random value which is sent to provider with the purpose of avoid csrf attacks
+  const state = crypto.randomUUID();
+  req.session.oauthState = state;
+
   const redirectUri = `http://localhost:${PORT}/auth/github/callback`;
   const clientId = process.env.GITHUB_CLIENT_ID;
-  const githubApiUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+  const githubApiUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email&state=${state}`;
   res.redirect(githubApiUrl);
 });
 
@@ -43,6 +47,15 @@ authRouter.get(
   "/github/callback",
   async (req: Request, res: Response): Promise<void> => {
     try {
+      const returnedState = req.query.state as string;
+      const sessionState = req.session.oauthState;
+
+      // Validate OAuth2 state to prevent CSRF
+      if (!returnedState || returnedState !== sessionState) {
+        console.error("Invalid OAuth state", { returnedState, sessionState });
+        return void res.status(401).send("Invalid OAuth state");
+      }
+
       const code = req.query.code as string;
       if (!code) return void res.status(400).send("Missing code from GitHub");
 
@@ -77,7 +90,6 @@ authRouter.get(
       const primaryEmail = emailRes.data.find(
         (e: EmailObject) => e.primary && e.verified
       )?.email;
-      console.log("user data: ", userResponse.data);
       const githubId = String(userResponse.data.id);
       const name = userResponse.data.name ?? userResponse.data.login;
       const email = primaryEmail ?? userResponse.data.email ?? null;
@@ -176,7 +188,6 @@ authRouter.post(
           .json({ error: "Email and password required" });
 
       const user = await findUserByEmail(email.toLowerCase());
-      console.log("user: ", user);
       if (!user || !user.password) {
         // no user or password (maybe registered with OAuth only)
         return void res.status(401).json({ error: "Invalid credentials" });
