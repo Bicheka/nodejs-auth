@@ -211,7 +211,7 @@ authRouter.post("/logout", (req: Request, res: Response) => {
       path: "/",
     });
 
-    return res.json({ ok: true });
+    return res.sendStatus(200)
   });
 });
 
