@@ -21,7 +21,7 @@ app.use(
     cookie: {
       httpOnly: true,
       // secure should be true in production (HTTPS). Here we detect by NODE_ENV
-      secure: process.env.NODE_ENV === "prod",
+      secure: process.env.NODE_ENV !== "dev",
       sameSite: "lax", // 'lax' helps with OAuth redirects
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
