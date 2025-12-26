@@ -1,5 +1,5 @@
 import pkg from "pg";
-import {RedisStore} from "connect-redis";
+import { RedisStore } from "connect-redis";
 import { createClient } from "redis";
 
 // setup postgresdb
@@ -21,4 +21,4 @@ redisClient.connect().catch(console.error);
 export let redisStore = new RedisStore({
   client: redisClient,
   prefix: "todoapp:",
-})
+});

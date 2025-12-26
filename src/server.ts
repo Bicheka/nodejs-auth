@@ -25,7 +25,7 @@ app.use(
       sameSite: "lax", // 'lax' helps with OAuth redirects
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
-  })
+  }),
 );
 
 // Types: extend session's shape
