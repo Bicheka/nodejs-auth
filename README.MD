@@ -7,7 +7,7 @@ The goal is simple: **create a basic authentication template for Node.js apps** 
 Right now, the project is still in the early stages and **a lot of help is needed**. The idea is to build something that makes setting up auth easier without having to rewrite everything from scratch each time.
 
 ## Purpose
-
+- Use as separate customizable microservice
 - Provide a simple starting point for email/password and OAuth login
 - Offer a basic structure that developers can copy, adapt, or improve
 - Keep things minimal, easy to understand, and flexible
