@@ -11,6 +11,7 @@ import {
   findUserByProvider,
   loginUserSession,
   createUserWithProvider,
+  setEmailVerified,
 } from "./service";
 import bcrypt from "bcrypt";
 
@@ -66,7 +67,7 @@ authRouter.get(
           client_secret: process.env.GITHUB_CLIENT_SECRET,
           code,
         },
-        { headers: { Accept: "application/json" } }
+        { headers: { Accept: "application/json" } },
       );
 
       const accessToken = tokenResponse.data.access_token;
@@ -88,7 +89,7 @@ authRouter.get(
       };
 
       const primaryEmail = emailRes.data.find(
-        (e: EmailObject) => e.primary && e.verified
+        (e: EmailObject) => e.primary && e.verified,
       )?.email;
       const githubId = String(userResponse.data.id);
       const name = userResponse.data.name ?? userResponse.data.login;
@@ -101,10 +102,9 @@ authRouter.get(
       if (!user && email) {
         user = await findUserByEmail(email.toLowerCase());
 
-        if(user) {
+        if (user) {
           // update the providers table creating a new row that link to this i
           await updateUserAuthProvider(user.id, "github", githubId);
-
         } else {
           // if no user was found
           // create user and update provider
@@ -117,8 +117,8 @@ authRouter.get(
           user = await createUserWithProvider(newUser, "github", githubId);
         }
       }
-      if(!user) {
-        throw new Error("User could not be resolved")
+      if (!user) {
+        throw new Error("User could not be resolved");
       }
       loginUserSession(req, user);
 
@@ -128,7 +128,7 @@ authRouter.get(
       console.error("GitHub callback error:", err);
       return void res.status(500).send("OAuth error");
     }
-  }
+  },
 );
 
 // TODO Google
@@ -158,7 +158,7 @@ authRouter.post(
         email: email.toLowerCase(),
         password: passwordHash,
         name,
-        email_verified: false
+        email_verified: false,
       });
 
       loginUserSession(req, user);
@@ -170,7 +170,7 @@ authRouter.post(
       console.error(err);
       res.status(500).json({ error: "Internal error" });
     }
-  }
+  },
 );
 
 // Email + Password Login
@@ -206,7 +206,7 @@ authRouter.post(
       console.error(err);
       res.status(500).json({ error: "Internal error" });
     }
-  }
+  },
 );
 
 // Logout
@@ -222,8 +222,23 @@ authRouter.post("/logout", (req: Request, res: Response) => {
       path: "/",
     });
 
-    return res.sendStatus(200)
+    return res.sendStatus(200);
   });
+});
+
+authRouter.put("/set-email-verified", async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return void res.status(404).send("Cound not find user");
+    }
+    await setEmailVerified(userId);
+    return void res.sendStatus(204);
+  } catch (err) {
+    res
+      .status(500)
+      .send("Something went wrong while setting up email to verified");
+  }
 });
 
 export default authRouter;

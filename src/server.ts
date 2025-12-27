@@ -2,6 +2,7 @@ import express from "express";
 import { redisStore } from "./config";
 import authRouter from "./routes";
 import session from "express-session";
+
 const PORT = process.env.PORT;
 
 const app = express();

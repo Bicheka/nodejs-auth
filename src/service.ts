@@ -27,7 +27,10 @@ export async function findUserById(id: number) {
   return r.rows[0];
 }
 // defaults to pool if no client is passed
-export async function createUser(user: newUser, client: Pool | PoolClient = pool): Promise<User> {
+export async function createUser(
+  user: newUser,
+  client: Pool | PoolClient = pool,
+): Promise<User> {
   const r = await client.query(
     `INSERT INTO users (name, email, email_verified, password)
      VALUES ($1, $2, $3, $4)
@@ -75,7 +78,7 @@ export async function updateUserAuthProvider(
   user_id: number,
   provider: string,
   provider_user_id: string,
-  client: Pool | PoolClient = pool
+  client: Pool | PoolClient = pool,
 ): Promise<void> {
   const query = `
     INSERT INTO auth_providers (user_id, provider, provider_user_id)
@@ -100,7 +103,12 @@ export async function createUserWithProvider(
     // create user
     const userCreated = await createUser(user, client);
     // link a provider to the user
-    await updateUserAuthProvider(userCreated.id, provider, provider_user_id, client);
+    await updateUserAuthProvider(
+      userCreated.id,
+      provider,
+      provider_user_id,
+      client,
+    );
 
     client.query("COMMIT");
     return userCreated;
@@ -110,4 +118,14 @@ export async function createUserWithProvider(
   } finally {
     client.release();
   }
+}
+
+export async function setEmailVerified(id: number) {
+  pool.query(
+    `UPDATE users
+    SET email_verified = true,
+    WHERE id = $1
+    `,
+    [id],
+  );
 }
