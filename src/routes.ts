@@ -209,6 +209,28 @@ authRouter.post(
   },
 );
 
+// Validate Session (this is meant for API gateway to verify the session so other services can trust the session)
+authRouter.post(
+  "/sessions/validate",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const session = req.session;
+
+      if (!session || !session.userId) {
+        return void res.status(401).json({ valid: false });
+      }
+
+      return void res.status(200).json({
+        valid: true,
+        user_id: session.userId,
+      });
+    } catch (err) {
+      console.error("Session validation error", err);
+      return void res.status(500).json({ valid: false });
+    }
+  },
+);
+
 // Logout
 authRouter.post("/logout", (req: Request, res: Response) => {
   return req.session.destroy((err) => {
