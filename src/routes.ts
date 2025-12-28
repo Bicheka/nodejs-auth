@@ -12,6 +12,7 @@ import {
   loginUserSession,
   createUserWithProvider,
   setEmailVerified,
+  deleteUserAccount,
 } from "./service";
 import bcrypt from "bcrypt";
 
@@ -31,6 +32,31 @@ authRouter.get("/user", requireAuth, (req: Request, res: Response) => {
   const userID = req.session.userId;
   res.send(userID).status(200);
 });
+
+// Delete user's account
+authRouter.delete(
+  "/delete-user",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.session.userId;
+      const sessionId = req.sessionID;
+      if (!userId || !sessionId) {
+        return void res.status(401).send("Could not verify user");
+      }
+      await deleteUserAccount(userId, sessionId);
+      res.clearCookie("sessionCookie", {
+        path: "/",
+      });
+      res.sendStatus(200);
+    } catch (err) {
+      console.error(err);
+      return void res
+        .status(500)
+        .send("Server error deleting account try again");
+    }
+  },
+);
 
 // Github
 authRouter.get("/github", (req: Request, res: Response) => {
@@ -243,7 +269,6 @@ authRouter.post("/logout", (req: Request, res: Response) => {
     res.clearCookie("sessionCookie", {
       path: "/",
     });
-
     return res.sendStatus(200);
   });
 });

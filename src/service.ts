@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from "pg";
-import { pool } from "./config";
+import { pool, redisStore } from "./config";
 import type { Request } from "express";
 
 type newUser = {
@@ -128,4 +128,26 @@ export async function setEmailVerified(id: number) {
     `,
     [id],
   );
+}
+
+export async function deleteUserAccount(id: number, sessionId: string) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const deleteUserQuery = `DELETE FROM users
+      WHERE id = $1
+      `;
+    await client.query(deleteUserQuery, [id]);
+    await deleteUserSession(sessionId);
+    client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+async function deleteUserSession(sessionId: string) {
+  await redisStore.destroy(sessionId);
 }
