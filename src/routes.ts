@@ -27,7 +27,7 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 // Get user info
-authRouter.get("/me", requireAuth, (req: Request, res: Response) => {
+authRouter.get("/user", requireAuth, (req: Request, res: Response) => {
   const userID = req.session.userId;
   res.send(userID).status(200);
 });
