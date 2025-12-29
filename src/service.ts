@@ -45,9 +45,19 @@ export async function createUser(
   return r.rows[0];
 }
 
-// saves session info in redis
-export function loginUserSession(req: Request, user: User) {
-  req.session.userId = user.id;
+// saves session info in redis while regenerating the session itself for better security
+export function loginUserSession(
+  req: Request,
+  user: { id: number },
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((err) => {
+      if (err) return reject(err);
+
+      req.session.userId = user.id;
+      resolve();
+    });
+  });
 }
 
 // finds a user using the provider name and id given by the provider

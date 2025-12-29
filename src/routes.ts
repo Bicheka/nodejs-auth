@@ -146,7 +146,7 @@ authRouter.get(
       if (!user) {
         throw new Error("User could not be resolved");
       }
-      loginUserSession(req, user);
+      await loginUserSession(req, user);
 
       // redirect to the desired frontend url
       return void res.redirect("http://localhost:5173/");
@@ -187,7 +187,7 @@ authRouter.post(
         email_verified: false,
       });
 
-      loginUserSession(req, user);
+      await loginUserSession(req, user);
       res.json({
         ok: true,
         user: { id: user.id, email: user.email, name: user.name },
@@ -223,7 +223,8 @@ authRouter.post(
       if (!match)
         return void res.status(401).json({ error: "Invalid credentials" });
 
-      loginUserSession(req, user);
+      await loginUserSession(req, user);
+
       res.json({
         ok: true,
         user: { id: user.id, email: user.email, name: user.name },
